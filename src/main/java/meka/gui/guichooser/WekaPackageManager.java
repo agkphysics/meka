@@ -14,20 +14,21 @@
  */
 
 /*
- * ExplorerDefinition.java
- * Copyright (C) 2015-2018 University of Waikato, Hamilton, NZ
+ * WekaPackageManager.java
+ * Copyright (C) 2018 University of Waikato, Hamilton, NZ
  */
 
 package meka.gui.guichooser;
 
-import weka.gui.BrowserHelper;
+import meka.gui.core.GUILauncher;
+import weka.gui.PackageManager;
 
 /**
- * Launches the Homepage.
+ * Launches the Weka package manager.
  *
  * @author FracPete (fracpete at waikato dot ac dot nz)
  */
-public class HomepageDefinition
+public class WekaPackageManager
   extends AbstractMenuItemDefinition {
 
 	private static final long serialVersionUID = -3184143315707991090L;
@@ -39,7 +40,7 @@ public class HomepageDefinition
 	 */
 	@Override
 	public String getGroup() {
-		return MENU_HELP;
+		return MENU_PROGRAM;
 	}
 
 	/**
@@ -49,7 +50,7 @@ public class HomepageDefinition
 	 */
 	@Override
 	public String getName() {
-		return "Homepage";
+		return "Weka Package manager";
 	}
 
 	/**
@@ -59,7 +60,7 @@ public class HomepageDefinition
 	 */
 	@Override
 	public String getIconName() {
-		return "homepage.png";
+		return "weka_icon_new_small.png";
 	}
 
 	/**
@@ -67,6 +68,6 @@ public class HomepageDefinition
 	 */
 	@Override
 	protected void launch() {
-		BrowserHelper.openURL("http://waikato.github.io/meka/");
+		GUILauncher.launchFrame(new PackageManager(), getName(), true);
 	}
 }
