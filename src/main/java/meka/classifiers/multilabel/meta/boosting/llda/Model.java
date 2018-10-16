@@ -108,10 +108,11 @@ public class Model implements Serializable {
     private void extractLabelsTopics(Instance doc, List<Integer> labels, List<Integer> words) {
         int L = doc.classIndex();
         for (int i = 0; i < doc.numValues(); i++) {
-            if (doc.index(0) < L) {
-                labels.add(i);
+            int value = doc.index(i);
+            if (value < L) {
+                labels.add(value);
             } else {
-                words.add(i);
+                words.add(value - L);
             }
         }
     }
@@ -134,5 +135,13 @@ public class Model implements Serializable {
         }
 
         this.V = corpus.numAttributes() - corpus.classIndex(); // I think?
+    }
+
+    public double[][] getPhi() {
+        return this.phi;
+    }
+
+    public double[][] getTheta() {
+        return this.theta;
     }
 }

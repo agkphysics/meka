@@ -31,7 +31,6 @@ public abstract class Sampling {
      */
     protected void estimate(Model model) {
         for (int i = 1; i < o.iter; i++) {
-            if (i % o.step == 0) { System.out.println("Iteration: " + i); }
 
             for (int m = 0; m < model.M; m++) {
                 for (int n = 0; n < model.docs.get(m).size(); n++) {

@@ -5,7 +5,12 @@ import weka.core.Instances;
 
 /** Commandline options */
 public class Options {
-    public boolean estimation = true;
+
+    public Options(Instances corpus, double alpha, double beta) {
+        this.corpus = corpus;
+        this.alpha = alpha;
+        this.beta = beta;
+    }
 
     //Corpus, TODO: Not from file
     public Instances corpus;
@@ -17,21 +22,16 @@ public class Options {
     public double beta = 0.01;
 
     //Iterations
-    public int iter = 1000;
+    public int iter = 1;
 
     //Topics
     public int K = 3;
-
-    public boolean llda = true;
-
-    //Reporting step
-    public int step = 100;
 
     public int burn = 100;
 
     public int lag = 5;
 
-    public String method = "extended";
+    public String method = "simple";
 
-    public boolean bg = true;
+
 }

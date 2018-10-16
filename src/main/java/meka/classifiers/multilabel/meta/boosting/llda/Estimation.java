@@ -24,7 +24,7 @@ public class Estimation extends Sampling {
 
 //        train.collectData("train");
 
-        System.out.println(computePerplexity(train));
+//        System.out.println(computePerplexity(train));
     }
 
     /**
@@ -39,10 +39,10 @@ public class Estimation extends Sampling {
         train.s_w_k[z] -= 1;
         train.s_w_d[m] -= 1;
 
-            int K = (o.llda) ? train.labels.get(m).size() : train.K;
+            int K = train.labels.get(m).size();
 
         for (int k = 0; k < K; k++) {
-            z = (o.llda) ? train.labels.get(m).get(k) : k;
+            z = train.labels.get(m).get(k);
 
             train.p[k] = (train.n_d_k[m][z] + train.alpha) *
                     (train.n_w_k[w][z] + train.beta) /
@@ -76,5 +76,13 @@ public class Estimation extends Sampling {
                                   (train.s_w_k[k] + train.V * train.beta);
             }
         }
+    }
+
+    public double[][] getPhi() {
+        return train.getPhi();
+    }
+
+    public double[][] getTheta() {
+        return train.getTheta();
     }
 }
