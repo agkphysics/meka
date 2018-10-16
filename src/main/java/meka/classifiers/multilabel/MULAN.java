@@ -25,6 +25,7 @@ import mulan.classifier.meta.HOMER;
 import mulan.classifier.meta.HierarchyBuilder;
 import mulan.classifier.meta.RAkEL;
 import mulan.classifier.neural.BPMLL;
+import mulan.classifier.transformation.AdaBoostMH;
 import mulan.classifier.transformation.BinaryRelevance;
 import mulan.classifier.transformation.CalibratedLabelRanking;
 import mulan.classifier.transformation.ClassifierChain;
@@ -189,6 +190,8 @@ public class MULAN extends ProblemTransformationMethod {
 			m_MULAN = new LabelPowerset(m_Classifier);
 		else if (m_MethodString.equals("CLR"))
 			m_MULAN = new CalibratedLabelRanking(m_Classifier);
+		else if (m_MethodString.equals("AdaBoostMH"))
+			m_MULAN = new AdaBoostMH();
 		else if (m_MethodString.equals("RAkEL1")) {
 			m_MULAN = new RAkEL(new LabelPowerset(m_Classifier),10,L/2);
 			System.out.println("m=10,k="+(L/2));

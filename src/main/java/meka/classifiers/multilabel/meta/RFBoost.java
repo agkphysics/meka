@@ -13,19 +13,22 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package meka.classifiers.multilabel.meta.boosting;
+package meka.classifiers.multilabel.meta;
 
-import meka.classifiers.multilabel.*;
-import meka.classifiers.multilabel.meta.HOMER.ClusterLabelSplitter;
-import meka.classifiers.multilabel.meta.MetaProblemTransformationMethod;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Vector;
+
+import meka.classifiers.multilabel.ProblemTransformationMethod;
+import meka.classifiers.multilabel.meta.boosting.llda.LLDA;
 import meka.core.OptionUtils;
-import weka.classifiers.SingleClassifierEnhancer;
-import weka.classifiers.trees.RandomForest;
-import weka.core.*;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
-
-import java.util.*;
+import weka.core.TechnicalInformationHandler;
 
 /**
  * Extremely Randomised Forest with HOMER trees algorithm.
@@ -34,14 +37,15 @@ import java.util.*;
  */
 public class RFBoost extends MetaProblemTransformationMethod implements TechnicalInformationHandler {
 
+    private static final long serialVersionUID = 2622231824645975335L;
+
+
+
     private int filteredFeatures;
 
     /**
      * Builds each HOMER tree using bagging, while randomising the settings for
      * the classifier at each node of the tree.
-     *
-     * @param instances
-     *            the instances to train with
      */
     @Override
     public void buildClassifier(Instances D) throws Exception {
@@ -51,8 +55,8 @@ public class RFBoost extends MetaProblemTransformationMethod implements Technica
         // Create W, distribution matrix from LLDA
         // Create T, ranked features sorted by weights
 
-        m_Classifiers = ProblemTransformationMethod.makeCopies((ProblemTransformationMethod) m_Classifier, m_NumIterations);
-
+//        m_Classifiers = ProblemTransformationMethod.makeCopies((ProblemTransformationMethod) m_Classifier, m_NumIterations);
+        LLDA llda = new LLDA(0.01, 0.01, D);
 
         for (int i = 0; i < m_NumIterations; i++) {
             // TODO: Boosting
