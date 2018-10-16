@@ -37,25 +37,6 @@ public class RFBoost extends MetaProblemTransformationMethod implements Technica
     private int filteredFeatures;
 
     /**
-     * The same as {@link ClusterLabelSplitter} except uses a random number of
-     * splits at each node of the tree, within fixed bounds.
-     */
-    public static class VariableKLabelSplitter extends ClusterLabelSplitter {
-        private static final long serialVersionUID = 9211371179003763478L;
-        private Random r;
-
-        public VariableKLabelSplitter(int seed) {
-            super(seed);
-            r = new Random(seed);
-        }
-
-        @Override
-        public Collection<Set<Integer>> splitLabels(int k, Collection<Integer> labels, Instances D) {
-            return super.splitLabels(r.nextInt(5) + 2, labels, D);
-        }
-    }
-
-    /**
      * Builds each HOMER tree using bagging, while randomising the settings for
      * the classifier at each node of the tree.
      *
