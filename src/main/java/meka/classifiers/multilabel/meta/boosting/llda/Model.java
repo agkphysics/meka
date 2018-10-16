@@ -134,6 +134,7 @@ public class Model implements Serializable {
             this.docs.add(words);
         }
 
+        this.K = corpus.classIndex();
         this.V = corpus.numAttributes() - corpus.classIndex(); // I think?
     }
 
