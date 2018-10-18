@@ -37,7 +37,7 @@ public abstract class Sampling {
                     sample(m, n);
                 }
             }
-            extended(i, model);
+//            extended(i, model);
         }
     }
 
