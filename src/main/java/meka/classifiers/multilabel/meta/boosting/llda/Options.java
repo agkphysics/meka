@@ -16,13 +16,13 @@ public class Options {
     public Instances corpus;
 
     //Alpha
-    public double alpha = 0.01;
+    public double alpha = 0.5;
 
     //Beta
-    public double beta = 0.01;
+    public double beta = 0.1;
 
     //Iterations
-    public int iter = 1;
+    public int iter = 50;
 
     //Topics
     public int K = 3;
