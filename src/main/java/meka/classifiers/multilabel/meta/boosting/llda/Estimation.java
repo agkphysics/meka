@@ -16,11 +16,8 @@ public class Estimation extends Sampling {
 
         printStats(train);
         estimate(train);
-
-        if (o.method.equals("simple")) {
-            computeTheta(train);
-            computePhi();
-        }
+        computeTheta(train);
+        computePhi();
 
 //        train.collectData("train");
 

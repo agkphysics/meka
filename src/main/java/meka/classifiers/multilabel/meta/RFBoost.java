@@ -16,18 +16,13 @@
 package meka.classifiers.multilabel.meta;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.Vector;
 
 import meka.classifiers.multilabel.ProblemTransformationMethod;
 import meka.classifiers.multilabel.meta.boosting.llda.LLDA;
-import meka.core.A;
 import meka.core.OptionUtils;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -36,7 +31,6 @@ import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
 import weka.core.TechnicalInformationHandler;
-import weka.core.Utils;
 
 /**
  * RFBoost
@@ -50,9 +44,9 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
     private double[][][] hypotheses;
     private int[] featuresForHypotheses;
 
-    private int filteredFeatures = 500;
+    private int filteredFeatures = 50;
 
-    private int m_NumIterations = 100;
+    private int m_NumIterations = 200;
 
     /**
      * Builds RFBoost hypotheses
@@ -69,6 +63,20 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
 //        m_Classifiers = ProblemTransformationMethod.makeCopies((ProblemTransformationMethod) m_Classifier, m_NumIterations);
         LLDA llda = new LLDA(0.5, 0.1, D);
         double[][] W = llda.getTheta();
+//        LLDAalt llda2 = new LLDAalt(0.5, 0.1, D);
+//        double[][] W = llda2.getTheta();
+
+        // ALT
+//        double[][] W_alt = W.clone();
+//        for (int i = 0; i < W.length; i++) {
+//            for (int j = 0; j < W[0].length; j++) {
+//                W_alt[i][j] = 1.0 / (D.classIndex() * numInstances);
+//            }
+//        }
+//        W = W_alt;
+
+        // END ALT
+
         normalize(W, D.size());
 
         List<Integer> rankedFeatures = rankFeatures(D, llda.getPhi());
@@ -78,6 +86,8 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
 
         List<Integer> filteredList = new ArrayList<>(rankedFeatures.subList(0, filteredFeatures)); // TODO: Select top features?
         int offset = filteredFeatures;
+
+        double epsilon = 1.0 / (D.classIndex() * numInstances);
 
         for (int iteration = 0; iteration < m_NumIterations; iteration++) {
             // TODO: Boosting
@@ -90,7 +100,7 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
             for (int j = 0; j < filteredFeatures; j++) {
                 int term_k = filteredList.get(j);
 
-                // Weird RFBoost stuff to calculate z_k_r
+                // Calculate Wul + or -
                 double[] W_0_plus_l = new double[D.classIndex()];
                 double[] W_1_plus_l = new double[D.classIndex()];
                 double[] W_0_min_l = new double[D.classIndex()];
@@ -99,27 +109,25 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
                     Instance doc = D.get(i);
                     // TODO: New method
 
-
+                    // Equations 10 and 11
                     for(int l = 0; l < D.classIndex(); l++) {
-                        if (doc.value(term_k) == 1.0 && doc.value(l) == 1.0) {
-                            W_1_plus_l[l] = W[i][l];
-                        } else if (doc.value(term_k) == 1.0 && doc.value(l) == 0.0) {
-                            W_1_min_l[l] = W[i][l];
-                        } else if (doc.value(term_k) == 0.0 && doc.value(l) == 1.0) {
-                            W_0_plus_l[l] = W[i][l];
+                        if (doc.value(term_k) == 1.0) {
+                            if (doc.value(l) == 1.0) {
+                                W_1_plus_l[l] = W[i][l];
+                            } else {
+                                W_1_min_l[l] = W[i][l];
+                            }
                         } else {
-                            W_0_min_l[l] = W[i][l];
+                            if (doc.value(l) == 1.0) {
+                                W_0_plus_l[l] = W[i][l];
+                            } else {
+                                W_0_min_l[l] = W[i][l];
+                            }
                         }
                     }
                 }
-                double[][] c_u_l_temp = new double[2][D.classIndex()];
-                // Calculate c_u_l
-                double epsilon = 1.0 / (D.classIndex() * numInstances);
-                for (int l = 0; l < D.classIndex(); l++) {
-                    c_u_l_temp[0][l] = 0.5 * Math.log((W_0_plus_l[l] + epsilon) / (W_0_min_l[l] + epsilon));
-                    c_u_l_temp[1][l] = 0.5 * Math.log((W_1_plus_l[l] + epsilon) / (W_1_min_l[l] + epsilon));
-                }
 
+                // Equation 13 is all below
                 double label_sum = 0;
                 for (int l = 0; l < D.classIndex(); l++) {
                     label_sum = label_sum + Math.sqrt(W_0_min_l[l] * W_0_plus_l[l]);
@@ -127,19 +135,25 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
                 }
                 double z_k_r = 2 * label_sum;
 
+                // See algorithm 4 lines 8 - 13
                 if (z_k_r < z_min) {
                     pivot_term = filteredList.get(j);
                     pivot_index = j;
-                    c_u_l = c_u_l_temp;
+                    for (int l = 0; l < D.classIndex(); l++) {
+                        c_u_l[0][l] = 0.5 * Math.log((W_0_plus_l[l] + epsilon) / (W_0_min_l[l] + epsilon));
+                        c_u_l[1][l] = 0.5 * Math.log((W_1_plus_l[l] + epsilon) / (W_1_min_l[l] + epsilon));
+                    }
                     z_min = z_k_r;
                 }
             }
+
             // Build weak hypothesis
+            // Equation 8 + Algorithm 4 line 13
             hypotheses[iteration] = c_u_l; // Weak hypothsis?
             featuresForHypotheses[iteration] = pivot_term;
 
             // Update weights
-
+            // Equation 4 + Algorithm 4 line 14
             for (int i = 0; i < W.length; i++) {
                 for (int l = 0; l < D.classIndex(); l++) {
                     double prevWeight = W[i][l];
@@ -153,21 +167,11 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
                     int phi_val = targetFunction(D.get(i).value(l));
                     int hyp_val = targetFunction(hypothesis);
 
-
-
-//                    int phi_val = -1;
-//
-//                    if (hypothesis > 0 && D.get(i).value(l) == 1) {
-//                        phi_val = 1;
-//                    } else if (hypothesis <= 0 && D.get(i).value(l) == 0) {
-//                        phi_val = 1;
-//                    }
-
-
                     W[i][l] = (W[i][l] * Math.exp(-1 * phi_val * hyp_val)) / z_min;
                 }
             }
 
+            // Algorithm 4 line 15 + 16
             filteredList.remove(pivot_index);
             filteredList.add(rankedFeatures.get(offset));
             offset = (offset + 1) % numFeatures;
@@ -181,6 +185,7 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
 
     @Override
     public double[] distributionForInstance(Instance x) throws Exception {
+        // Equation 7
         double[] result = new double[x.classIndex()];
         for (int r = 0; r < m_NumIterations; r++) {
             double[][] hypothesis = hypotheses[r];
@@ -193,14 +198,10 @@ public class RFBoost extends ProblemTransformationMethod implements TechnicalInf
                 }
             }
         }
-        boolean  positive = false;
+        // Equation 5
         for (int i = 0; i < result.length; i++) {
             result[i] = result[i] >= 0 ? 1 : 0;
-            if (result[i] == 1) positive = true;
         }
-//        if(!positive) {
-//            result[Utils.maxIndex(result)] = 1;
-//        }
         return result;
     }
 
